@@ -1,25 +1,25 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: service-system
+  name: sales-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-pod # Base POD name
-  namespace: service-system
+  name: sales-pod # Base POD name
+  namespace: sales-system
 spec:
   selector:
     matchLabels:
-      app: service # Selector for POD name search.
+      app: sales # Selector for POD name search.
   template:
     metadata:
       labels:
-        app: service
+        app: sales
     spec:
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       terminationGracePeriodSeconds: 60
       containers:
-      - name: service-api
-        image: service-amd64:1.0
+      - name: sales-api
+        image: sales-api-image
