@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-pod
+  namespace: database-system
+spec:
+  selector:
+    matchLabels:
+      app: database
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      containers:
+      - name: postgres
+        image: postgres:13-alpine
+        resources:
+          limits:
+            cpu: "1000m" # Up to 1 full core
+          requests:
+            cpu: "1000m" # Use 1 full core
+        imagePullPolicy: Always
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: db_password
+        ports:
+        - name: postgres
+          containerPort: 5432
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -h
+            - localhost
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -h
+            - localhost
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+  namespace: database-system
+spec:
+  type: ClusterIP
+  selector:
+    app: database
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
