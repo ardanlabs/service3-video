@@ -7,11 +7,9 @@ info@ardanlabs.com
 
 This class teaches how to build production-level services in Go leveraging the power of Kubernetes. From the beginning, you will pair program with the instructor walking through the design philosophies and guidelines for building services in Go. With each new feature that is added to the service, you will learn how to deploy to and manage the Kubernetes environment used to run the service.
 
+Learn more about the project:
+
 [Wiki](https://github.com/ardanlabs/service/wiki) | [Course Outline](https://github.com/ardanlabs/service/wiki/course-outline) | [Class Schedule](https://www.eventbrite.com/o/ardan-labs-7092394651)
-
-If you are watching the Ultimate Service 3.0 video on the ArdanLabs [education](https://education.ardanlabs.com/) site, please use this branch of the service repo.
-
-https://github.com/ardanlabs/service/tree/service3
 
 ## Licensing
 
@@ -29,12 +27,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-## About The Project
-
-Please read the project wiki.
-
-https://github.com/ardanlabs/service/wiki
-
 ## Learn More
 
 **To learn about Corporate training events, options and special pricing please contact:**
@@ -43,15 +35,15 @@ William Kennedy
 ArdanLabs (www.ardanlabs.com)  
 bill@ardanlabs.com  
 
-* [Purchase Video](https://github.com/ardanlabs/gotraining#purchase-video)
-* [Experience](https://github.com/ardanlabs/gotraining#our-experience)
-* [Teacher](https://github.com/ardanlabs/gotraining#our-teacher)
-* [More About Go](https://github.com/ardanlabs/gotraining#more-about-go)
-* [Minimal Qualified Student](https://github.com/ardanlabs/gotraining#minimal-qualified-student)
-* [Important Reading](https://github.com/ardanlabs/gotraining#important-reading)
-* [Before You Come To Class](https://github.com/ardanlabs/gotraining#before-you-come-to-class)
-* [Starter Material](https://github.com/ardanlabs/gotraining#starter-material)
-* [Get The Training Material](https://github.com/ardanlabs/gotraining#go-get-the-training-material)
+* [Purchase Video](https://github.com/ardanlabs/service3-video#purchase-video)
+* [Experience](https://github.com/ardanlabs/service3-video#our-experience)
+* [Teacher](https://github.com/ardanlabs/service3-video#our-teacher)
+* [More About Go](https://github.com/ardanlabs/service3-video#more-about-go)
+* [Minimal Qualified Student](https://github.com/ardanlabs/service3-video#minimal-qualified-student)
+* [Important Reading](https://github.com/ardanlabs/service3-video#important-reading)
+* [Before You Come To Class](https://github.com/ardanlabs/service3-video#before-you-come-to-class)
+* [Starter Material](https://github.com/ardanlabs/service3-video#starter-material)
+* [Get The Training Material](https://github.com/ardanlabs/service3-video#go-get-the-training-material)
 
 ## Purchase Video
 
@@ -203,6 +195,17 @@ http://farazdagi.com/blog/2015/vim-as-golang-ide/
 
 **Goland**  
 https://www.jetbrains.com/go/
+
+### Installing the Training Material
+
+While many of the examples can be done using the online playground (http://play.golang.org), some may find it easier to complete them with their local editor.  To do so, you will want to load the training material locally to your machine.  From a command prompt, issue the following commands:
+
+```sh
+mkdir -p $(go env GOPATH)/src/github.com/ardanlabs && cd $_
+git clone https://github.com/ardanlabs/gotraining.git
+```
+
+*NOTE:* This assumes you have Git installed.  If you don’t, you can find the installation instructions here: https://git-scm.com/
 
 ## Twitter
 
