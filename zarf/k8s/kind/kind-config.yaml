@@ -3,6 +3,8 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
   extraPortMappings:
+  - containerPort: 9411
+    hostPort: 9411
   - containerPort: 3000
     hostPort: 3000
   - containerPort: 4000
