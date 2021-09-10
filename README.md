@@ -9,7 +9,7 @@ This class teaches how to build production-level services in Go leveraging the p
 
 [Wiki](https://github.com/ardanlabs/service/wiki) | [Course Outline](https://github.com/ardanlabs/service/wiki/course-outline) | [Class Schedule](https://www.eventbrite.com/o/ardan-labs-7092394651)
 
-If you are watching the Ultimate Service 3.0 video on the ArdanLabs [education](https://education.ardanlabs.com/) site, please use this branch of the repo.
+If you are watching the Ultimate Service 3.0 video on the ArdanLabs [education](https://education.ardanlabs.com/) site, please use this branch of the service repo.
 
 https://github.com/ardanlabs/service/tree/Service3.0
 
