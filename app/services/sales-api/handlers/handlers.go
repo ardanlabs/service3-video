@@ -13,7 +13,7 @@ import (
 	v1UserGrp "github.com/ardanlabs/service/app/services/sales-api/handlers/v1/usergrp"
 	userCore "github.com/ardanlabs/service/business/core/user"
 	"github.com/ardanlabs/service/business/sys/auth"
-	"github.com/ardanlabs/service/business/web/mid"
+	"github.com/ardanlabs/service/business/web/v1/mid"
 	"github.com/ardanlabs/service/foundation/web"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
