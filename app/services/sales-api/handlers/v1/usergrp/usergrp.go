@@ -10,8 +10,7 @@ import (
 
 	"github.com/ardanlabs/service/business/core/user"
 	"github.com/ardanlabs/service/business/sys/auth"
-	"github.com/ardanlabs/service/business/sys/validate"
-	webv1 "github.com/ardanlabs/service/business/web/v1"
+	v1Web "github.com/ardanlabs/service/business/web/v1"
 	"github.com/ardanlabs/service/foundation/web"
 )
 
@@ -50,7 +49,7 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return webv1.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	var upd user.UpdateUser
@@ -62,15 +61,15 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	// If you are not an admin and looking to retrieve someone other than yourself.
 	if !claims.Authorized(auth.RoleAdmin) && claims.Subject != userID {
-		return webv1.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	if err := h.Core.Update(ctx, userID, upd, v.Now); err != nil {
-		switch validate.Cause(err) {
-		case user.ErrInvalidID:
-			return webv1.NewRequestError(err, http.StatusBadRequest)
-		case user.ErrNotFound:
-			return webv1.NewRequestError(err, http.StatusNotFound)
+		switch {
+		case errors.Is(err, user.ErrInvalidID):
+			return v1Web.NewRequestError(err, http.StatusBadRequest)
+		case errors.Is(err, user.ErrNotFound):
+			return v1Web.NewRequestError(err, http.StatusNotFound)
 		default:
 			return fmt.Errorf("ID[%s] User[%+v]: %w", userID, &upd, err)
 		}
@@ -83,22 +82,22 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 func (h Handlers) Delete(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return webv1.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	userID := web.Param(r, "id")
 
 	// If you are not an admin and looking to delete someone other than yourself.
 	if !claims.Authorized(auth.RoleAdmin) && claims.Subject != userID {
-		return webv1.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	if err := h.Core.Delete(ctx, userID); err != nil {
-		switch validate.Cause(err) {
-		case user.ErrInvalidID:
-			return webv1.NewRequestError(err, http.StatusBadRequest)
-		case user.ErrNotFound:
-			return webv1.NewRequestError(err, http.StatusNotFound)
+		switch {
+		case errors.Is(err, user.ErrInvalidID):
+			return v1Web.NewRequestError(err, http.StatusBadRequest)
+		case errors.Is(err, user.ErrNotFound):
+			return v1Web.NewRequestError(err, http.StatusNotFound)
 		default:
 			return fmt.Errorf("ID[%s]: %w", userID, err)
 		}
@@ -112,12 +111,12 @@ func (h Handlers) Query(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	page := web.Param(r, "page")
 	pageNumber, err := strconv.Atoi(page)
 	if err != nil {
-		return webv1.NewRequestError(fmt.Errorf("invalid page format [%s]", page), http.StatusBadRequest)
+		return v1Web.NewRequestError(fmt.Errorf("invalid page format [%s]", page), http.StatusBadRequest)
 	}
 	rows := web.Param(r, "rows")
 	rowsPerPage, err := strconv.Atoi(rows)
 	if err != nil {
-		return webv1.NewRequestError(fmt.Errorf("invalid rows format [%s]", rows), http.StatusBadRequest)
+		return v1Web.NewRequestError(fmt.Errorf("invalid rows format [%s]", rows), http.StatusBadRequest)
 	}
 
 	users, err := h.Core.Query(ctx, pageNumber, rowsPerPage)
@@ -132,23 +131,23 @@ func (h Handlers) Query(ctx context.Context, w http.ResponseWriter, r *http.Requ
 func (h Handlers) QueryByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return webv1.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	userID := web.Param(r, "id")
 
 	// If you are not an admin and looking to retrieve someone other than yourself.
 	if !claims.Authorized(auth.RoleAdmin) && claims.Subject != userID {
-		return webv1.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	usr, err := h.Core.QueryByID(ctx, userID)
 	if err != nil {
-		switch validate.Cause(err) {
-		case user.ErrInvalidID:
-			return webv1.NewRequestError(err, http.StatusBadRequest)
-		case user.ErrNotFound:
-			return webv1.NewRequestError(err, http.StatusNotFound)
+		switch {
+		case errors.Is(err, user.ErrInvalidID):
+			return v1Web.NewRequestError(err, http.StatusBadRequest)
+		case errors.Is(err, user.ErrNotFound):
+			return v1Web.NewRequestError(err, http.StatusNotFound)
 		default:
 			return fmt.Errorf("ID[%s]: %w", userID, err)
 		}
@@ -167,16 +166,16 @@ func (h Handlers) Token(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	email, pass, ok := r.BasicAuth()
 	if !ok {
 		err := errors.New("must provide email and password in Basic auth")
-		return webv1.NewRequestError(err, http.StatusUnauthorized)
+		return v1Web.NewRequestError(err, http.StatusUnauthorized)
 	}
 
 	claims, err := h.Core.Authenticate(ctx, v.Now, email, pass)
 	if err != nil {
-		switch validate.Cause(err) {
-		case user.ErrNotFound:
-			return webv1.NewRequestError(err, http.StatusNotFound)
-		case user.ErrAuthenticationFailure:
-			return webv1.NewRequestError(err, http.StatusUnauthorized)
+		switch {
+		case errors.Is(err, user.ErrNotFound):
+			return v1Web.NewRequestError(err, http.StatusNotFound)
+		case errors.Is(err, user.ErrAuthenticationFailure):
+			return v1Web.NewRequestError(err, http.StatusUnauthorized)
 		default:
 			return fmt.Errorf("authenticating: %w", err)
 		}

@@ -1,10 +1,12 @@
 //  Package v1 represents types used by the web application for v1.
 package v1
 
+import "errors"
+
 // ErrorResponse is the form used for API responses from failures in the API.
 type ErrorResponse struct {
-	Error  string `json:"error"`
-	Fields string `json:"fields,omitempty"`
+	Error  string            `json:"error"`
+	Fields map[string]string `json:"fields,omitempty"`
 }
 
 // RequestError is used to pass an error during the request through the
@@ -24,4 +26,19 @@ func NewRequestError(err error, status int) error {
 // wrapped error. This is what will be shown in the services' logs.
 func (err *RequestError) Error() string {
 	return err.Err.Error()
+}
+
+// IsRequestError checks if an error of type RequestError exists.
+func IsRequestError(err error) bool {
+	var re *RequestError
+	return errors.As(err, &re)
+}
+
+// GetRequestError returns a copy of the RequestError pointer.
+func GetRequestError(err error) *RequestError {
+	var re *RequestError
+	if !errors.As(err, &re) {
+		return nil
+	}
+	return re
 }
