@@ -67,12 +67,10 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	if err := h.Core.Update(ctx, userID, upd, v.Now); err != nil {
 		switch validate.Cause(err) {
-		case validate.ErrInvalidID:
+		case user.ErrInvalidID:
 			return webv1.NewRequestError(err, http.StatusBadRequest)
-		case validate.ErrNotFound:
+		case user.ErrNotFound:
 			return webv1.NewRequestError(err, http.StatusNotFound)
-		case auth.ErrForbidden:
-			return webv1.NewRequestError(err, http.StatusForbidden)
 		default:
 			return fmt.Errorf("ID[%s] User[%+v]: %w", userID, &upd, err)
 		}
@@ -97,12 +95,10 @@ func (h Handlers) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	if err := h.Core.Delete(ctx, userID); err != nil {
 		switch validate.Cause(err) {
-		case validate.ErrInvalidID:
+		case user.ErrInvalidID:
 			return webv1.NewRequestError(err, http.StatusBadRequest)
-		case validate.ErrNotFound:
+		case user.ErrNotFound:
 			return webv1.NewRequestError(err, http.StatusNotFound)
-		case auth.ErrForbidden:
-			return webv1.NewRequestError(err, http.StatusForbidden)
 		default:
 			return fmt.Errorf("ID[%s]: %w", userID, err)
 		}
@@ -149,12 +145,10 @@ func (h Handlers) QueryByID(ctx context.Context, w http.ResponseWriter, r *http.
 	usr, err := h.Core.QueryByID(ctx, userID)
 	if err != nil {
 		switch validate.Cause(err) {
-		case validate.ErrInvalidID:
+		case user.ErrInvalidID:
 			return webv1.NewRequestError(err, http.StatusBadRequest)
-		case validate.ErrNotFound:
+		case user.ErrNotFound:
 			return webv1.NewRequestError(err, http.StatusNotFound)
-		case auth.ErrForbidden:
-			return webv1.NewRequestError(err, http.StatusForbidden)
 		default:
 			return fmt.Errorf("ID[%s]: %w", userID, err)
 		}
@@ -179,9 +173,9 @@ func (h Handlers) Token(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	claims, err := h.Core.Authenticate(ctx, v.Now, email, pass)
 	if err != nil {
 		switch validate.Cause(err) {
-		case validate.ErrNotFound:
+		case user.ErrNotFound:
 			return webv1.NewRequestError(err, http.StatusNotFound)
-		case auth.ErrAuthenticationFailure:
+		case user.ErrAuthenticationFailure:
 			return webv1.NewRequestError(err, http.StatusUnauthorized)
 		default:
 			return fmt.Errorf("authenticating: %w", err)
