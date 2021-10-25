@@ -92,9 +92,58 @@ func StatusCheck(ctx context.Context, db *sqlx.DB) error {
 	return db.QueryRowContext(ctx, q).Scan(&tmp)
 }
 
+// Transactor interface needed to begin transaction.
+type Transactor interface {
+	Beginx() (*sqlx.Tx, error)
+}
+
+// WithinTran runs passed function and do commit/rollback at the end.
+func WithinTran(ctx context.Context, log *zap.SugaredLogger, db Transactor, fn func(sqlx.ExtContext) error) error {
+	traceID := web.GetTraceID(ctx)
+
+	// Begin the transaction.
+	log.Infow("begin tran", "traceid", traceID)
+	tx, err := db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin tran: %w", err)
+	}
+
+	// Mark to the defer function a rollback is required.
+	mustRollback := true
+
+	// Setup a defer function for rolling back the transaction. If
+	// mustRollback is true it means the call to fn failed and we
+	// need to rollback the transaction.
+	defer func() {
+		if mustRollback {
+			log.Infow("rollback tran", "traceid", traceID)
+			if err := tx.Rollback(); err != nil {
+				log.Errorw("unable to rollback tran", "traceid", traceID, "ERROR", err)
+			}
+		}
+	}()
+
+	// Execute the code inside of the transaction. If the function
+	// fails, return the error and the defer function will rollback.
+	if err := fn(tx); err != nil {
+		return fmt.Errorf("exec tran: %w", err)
+	}
+
+	// Disarm the deferred rollback.
+	mustRollback = false
+
+	// Commit the transaction.
+	log.Infow("commit tran", "traceid", traceID)
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit tran: %w", err)
+	}
+
+	return nil
+}
+
 // NamedExecContext is a helper function to execute a CUD operation with
 // logging and tracing.
-func NamedExecContext(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, query string, data interface{}) error {
+func NamedExecContext(ctx context.Context, log *zap.SugaredLogger, db sqlx.ExtContext, query string, data interface{}) error {
 	q := queryString(query, data)
 	log.Infow("database.NamedExecContext", "traceid", web.GetTraceID(ctx), "query", q)
 
@@ -102,7 +151,7 @@ func NamedExecContext(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, 
 	span.SetAttributes(attribute.String("query", q))
 	defer span.End()
 
-	if _, err := db.NamedExecContext(ctx, query, data); err != nil {
+	if _, err := sqlx.NamedExecContext(ctx, db, query, data); err != nil {
 		return err
 	}
 
@@ -111,7 +160,7 @@ func NamedExecContext(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, 
 
 // NamedQuerySlice is a helper function for executing queries that return a
 // collection of data to be unmarshaled into a slice.
-func NamedQuerySlice(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, query string, data interface{}, dest interface{}) error {
+func NamedQuerySlice(ctx context.Context, log *zap.SugaredLogger, db sqlx.ExtContext, query string, data interface{}, dest interface{}) error {
 	q := queryString(query, data)
 	log.Infow("database.NamedQuerySlice", "traceid", web.GetTraceID(ctx), "query", q)
 
@@ -124,7 +173,7 @@ func NamedQuerySlice(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, q
 		return errors.New("must provide a pointer to a slice")
 	}
 
-	rows, err := db.NamedQueryContext(ctx, query, data)
+	rows, err := sqlx.NamedQueryContext(ctx, db, query, data)
 	if err != nil {
 		return err
 	}
@@ -143,7 +192,7 @@ func NamedQuerySlice(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, q
 
 // NamedQueryStruct is a helper function for executing queries that return a
 // single value to be unmarshalled into a struct type.
-func NamedQueryStruct(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, query string, data interface{}, dest interface{}) error {
+func NamedQueryStruct(ctx context.Context, log *zap.SugaredLogger, db sqlx.ExtContext, query string, data interface{}, dest interface{}) error {
 	q := queryString(query, data)
 	log.Infow("database.NamedQueryStruct", "traceid", web.GetTraceID(ctx), "query", q)
 
@@ -151,7 +200,7 @@ func NamedQueryStruct(ctx context.Context, log *zap.SugaredLogger, db *sqlx.DB, 
 	span.SetAttributes(attribute.String("query", q))
 	defer span.End()
 
-	rows, err := db.NamedQueryContext(ctx, query, data)
+	rows, err := sqlx.NamedQueryContext(ctx, db, query, data)
 	if err != nil {
 		return err
 	}

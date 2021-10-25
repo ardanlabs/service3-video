@@ -59,9 +59,21 @@ func (c Core) Create(ctx context.Context, nu NewUser, now time.Time) (User, erro
 		DateUpdated:  now,
 	}
 
-	if err := c.store.Create(ctx, dbUsr); err != nil {
-		return User{}, fmt.Errorf("create: %w", err)
+	// This provides an example of how to execute a transaction if required.
+	tran := func(tx sqlx.ExtContext) error {
+		if err := c.store.Tran(tx).Create(ctx, dbUsr); err != nil {
+			return fmt.Errorf("create: %w", err)
+		}
+		return nil
 	}
+
+	if err := c.store.WithinTran(ctx, tran); err != nil {
+		return User{}, fmt.Errorf("tran: %w", err)
+	}
+
+	// if err := c.store.Create(ctx, dbUsr); err != nil {
+	// 	return User{}, fmt.Errorf("create: %w", err)
+	// }
 
 	return toUser(dbUsr), nil
 }
